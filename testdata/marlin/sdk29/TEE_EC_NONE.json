@@ -1,0 +1,29 @@
+{
+  "attestationVersion": "2",
+  "attestationSecurityLevel": "SOFTWARE",
+  "keymasterVersion": "1",
+  "keymasterSecurityLevel": "TRUSTED_ENVIRONMENT",
+  "attestationChallenge": "Y2hhbGxlbmdl",
+  "uniqueId": "",
+  "softwareEnforced": {
+    "creationDateTime": "1572308512000",
+    "attestationApplicationId": {
+      "packages": [
+        {
+          "name": "com.google.wireless.android.security.attestationverifier.collector",
+          "version": "0"
+        }
+      ],
+      "signatures": ["EDk47kU35Z6O55L2VFBPuDRvxrNG0LvEQV/DOfz8jsE="]
+    }
+  },
+  "teeEnforced": {
+    "purposes": ["2"],
+    "keySize": "256",
+    "algorithms": "3",
+    "ecCurve": "1",
+    "noAuthRequired": true,
+    "origin": "0",
+    "rollbackResistant": true
+  }
+}
