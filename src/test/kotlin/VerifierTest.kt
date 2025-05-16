@@ -50,6 +50,26 @@ class VerifierTest {
   }
 
   @Test
+  fun verify_validChain_returnsDeviceIdentity() {
+    val chain = readCertPath("blueline/sdk28/TEE_RSA_BASE+IMEI.pem")
+    val result =
+      assertIs<VerificationResult.Success>(verifier.verify(chain, "challenge".toByteArray()))
+    assertThat(result.attestedDeviceIds)
+      .isEqualTo(
+        DeviceIdentity(
+          "google",
+          "blueline",
+          "blueline",
+          null,
+          setOf("990012001354866"),
+          null,
+          "Google",
+          "Pixel 3",
+        )
+      )
+  }
+
+  @Test
   fun verify_unexpectedChallenge_returnsChallengeMismatch() {
     val chain = readCertPath("blueline/sdk28/TEE_EC_NONE.pem")
     assertIs<VerificationResult.ChallengeMismatch>(verifier.verify(chain, "foo".toByteArray()))
@@ -61,4 +81,6 @@ class VerifierTest {
       verifier.verify(CertLists.wrongTrustAnchor, "challenge".toByteArray())
     )
   }
+
+  // TODO(b/416573024): Add tests for other failure cases.
 }

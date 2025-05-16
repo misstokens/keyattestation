@@ -87,6 +87,36 @@ data class ProvisioningInfoMap(
   }
 }
 
+@JsonClass(generateAdapter = true)
+data class DeviceIdentity(
+  val brand: String?,
+  val device: String?,
+  val product: String?,
+  val serialNumber: String?,
+  val imeis: Set<String>,
+  val meid: String?,
+  val manufacturer: String?,
+  val model: String?,
+) {
+  companion object {
+    @JvmStatic
+    fun parseFrom(description: KeyDescription) =
+      DeviceIdentity(
+        description.teeEnforced.attestationIdBrand,
+        description.teeEnforced.attestationIdDevice,
+        description.teeEnforced.attestationIdProduct,
+        description.teeEnforced.attestationIdSerial,
+        setOfNotNull(
+          description.teeEnforced.attestationIdImei,
+          description.teeEnforced.attestationIdSecondImei,
+        ),
+        description.teeEnforced.attestationIdMeid,
+        description.teeEnforced.attestationIdManufacturer,
+        description.teeEnforced.attestationIdModel,
+      )
+  }
+}
+
 @Immutable
 @JsonClass(generateAdapter = true)
 data class KeyDescription(
@@ -97,6 +127,7 @@ data class KeyDescription(
   val attestationChallenge: ByteString,
   val uniqueId: ByteString,
   val softwareEnforced: AuthorizationList,
+  // TODO: Rename to hardwareEnforced b/c could be TEE or StrongBox.
   val teeEnforced: AuthorizationList,
 ) {
   fun asExtension(): Extension {

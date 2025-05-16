@@ -41,6 +41,7 @@ sealed interface VerificationResult {
     val securityLevel: SecurityLevel,
     val verifiedBootState: VerifiedBootState,
     val deviceInformation: ProvisioningInfoMap?,
+    val attestedDeviceIds: DeviceIdentity,
   ) : VerificationResult
 
   data object ChallengeMismatch : VerificationResult
@@ -142,6 +143,7 @@ open class Verifier(
       securityLevel,
       rootOfTrust.verifiedBootState,
       deviceInformation,
+      DeviceIdentity.parseFrom(keyDescription),
     )
   }
 }
