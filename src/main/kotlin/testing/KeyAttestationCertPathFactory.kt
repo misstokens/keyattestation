@@ -17,6 +17,7 @@
 package com.android.keyattestation.verifier.testing
 
 import com.android.keyattestation.verifier.KeyDescription
+import com.android.keyattestation.verifier.ProvisioningInfoMap
 import com.android.keyattestation.verifier.provider.KeyAttestationCertPath
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x509.Extension
@@ -44,7 +45,15 @@ class KeyAttestationCertPathFactory(val fakeCalendar: FakeCalendar = FakeCalenda
           signingKey = rkpKey.private,
           issuer = rkpIntermediate.subject,
           extraExtension =
-            Extension(ObjectIds.PROVISIONING_INFO, /* critical= */ false, byteArrayOf()),
+            Extension(
+              ObjectIds.PROVISIONING_INFO,
+              /* critical= */ false,
+              ProvisioningInfoMap(
+                  certificatesIssued = 1,
+                  manufacturer = keyDescription.teeEnforced.attestationIdManufacturer,
+                )
+                .encodeToAsn1(),
+            ),
         )
       return KeyAttestationCertPath(
         certFactory.generateLeafCert(extension = keyDescription.asExtension()),

@@ -17,6 +17,7 @@
 package com.android.keyattestation.verifier
 
 import co.nstant.`in`.cbor.CborDecoder
+import co.nstant.`in`.cbor.CborEncoder
 import co.nstant.`in`.cbor.CborException
 import co.nstant.`in`.cbor.model.DataItem
 import co.nstant.`in`.cbor.model.MajorType
@@ -32,6 +33,7 @@ import com.google.errorprone.annotations.Immutable
 import com.google.protobuf.ByteString
 import com.squareup.moshi.JsonClass
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
@@ -59,6 +61,13 @@ data class ProvisioningInfoMap(
   val certificatesIssued: Int,
   val manufacturer: String?,
 ) {
+  fun encodeToAsn1(): ByteArray {
+    val map = Map()
+    map.put(UnsignedInteger(1L), certificatesIssued.asDataItem())
+    if (manufacturer != null) map.put(UnsignedInteger(3L), manufacturer.asDataItem())
+    return DEROctetString(cborEncode(map)).encoded
+  }
+
   companion object {
     /* OID for the provisioning info map extension.
      * https://developer.android.com/privacy-and-security/security-key-attestation#provisioning_attestation_ext_schema
@@ -648,6 +657,13 @@ fun cborDecode(data: ByteArray): DataItem {
   return dataItems[0]
 }
 
+fun cborEncode(dataItem: DataItem): ByteArray {
+  val baos = ByteArrayOutputStream()
+  val encoder = CborEncoder(baos)
+  encoder.encode(dataItem)
+  return baos.toByteArray()
+}
+
 fun DataItem.asInteger(): Int {
   if (this.majorType == MajorType.UNSIGNED_INTEGER) {
     return (this as UnsignedInteger).value.toInt()
@@ -657,6 +673,14 @@ fun DataItem.asInteger(): Int {
   }
   throw CborException("Expected a number, got ${this.majorType}")
 }
+
+fun Int.asDataItem() =
+  when {
+    this >= 0 -> UnsignedInteger(this.toLong())
+    else -> NegativeInteger(this.toLong())
+  }
+
+fun String.asDataItem() = UnicodeString(this)
 
 private fun DataItem.asMap(): Map {
   if (this.majorType != MajorType.MAP) {
