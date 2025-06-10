@@ -24,7 +24,7 @@
     "paddings": ["3"],
     "rsaPublicExponent": "65537",
     "noAuthRequired": true,
-    "origin": "GENERATED",
+    "origin": "0",
     "rollbackResistant": true
   }
 }

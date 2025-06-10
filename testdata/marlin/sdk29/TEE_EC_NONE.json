@@ -23,7 +23,7 @@
     "algorithms": "3",
     "ecCurve": "1",
     "noAuthRequired": true,
-    "origin": "GENERATED",
+    "origin": "0",
     "rollbackResistant": true
   }
 }

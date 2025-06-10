@@ -213,22 +213,6 @@ enum class SecurityLevel(val value: Int) {
 }
 
 /**
- * Representation of the Origin enum contained within [KeyDescription].
- *
- * @see
- *   https://cs.android.com/android/platform/superproject/main/+/main:hardware/interfaces/security/keymint/aidl/android/hardware/security/keymint/KeyOrigin.aidl
- */
-enum class Origin(val value: Long) {
-  GENERATED(0),
-  DERIVED(1),
-  IMPORTED(2),
-  RESERVED(3),
-  SECURELY_IMPORTED(4);
-
-  internal fun toAsn1() = ASN1Integer(value)
-}
-
-/**
  * KeyMint tag names and IDs.
  *
  * @see
@@ -303,7 +287,7 @@ data class AuthorizationList(
   val trustedUserPresenceRequired: Boolean? = null,
   val unlockedDeviceRequired: Boolean? = null,
   val creationDateTime: BigInteger? = null,
-  val origin: Origin? = null,
+  val origin: BigInteger? = null,
   val rollbackResistant: Boolean? = null,
   val rootOfTrust: RootOfTrust? = null,
   val osVersion: BigInteger? = null,
@@ -443,7 +427,7 @@ data class AuthorizationList(
         unlockedDeviceRequired =
           if (objects.containsKey(KeyMintTag.UNLOCKED_DEVICE_REQUIRED)) true else null,
         creationDateTime = objects[KeyMintTag.CREATION_DATE_TIME]?.toInt(),
-        origin = objects[KeyMintTag.ORIGIN]?.toOrigin(),
+        origin = objects[KeyMintTag.ORIGIN]?.toInt(),
         rollbackResistant = if (objects.containsKey(KeyMintTag.ROLLBACK_RESISTANT)) true else null,
         rootOfTrust = objects[KeyMintTag.ROOT_OF_TRUST]?.toRootOfTrust(),
         osVersion = objects[KeyMintTag.OS_VERSION]?.toInt(),
@@ -633,10 +617,6 @@ private fun ASN1Encodable.toRootOfTrust(): RootOfTrust {
 private fun ASN1Encodable.toSecurityLevel(): SecurityLevel =
   SecurityLevel.values().firstOrNull { it.value.toBigInteger() == this.toEnumerated().value }
     ?: throw IllegalStateException("unknown value: ${this.toEnumerated().value}")
-
-private fun ASN1Encodable.toOrigin(): Origin =
-  Origin.values().firstOrNull { it.value.toBigInteger() == this.toInt() }
-    ?: throw IllegalStateException("unknown value: ${this.toInt()}")
 
 private inline fun <reified T> ASN1Encodable.toSet(): Set<T> {
   check(this is ASN1Set) { "Object must be an ASN1Set, was ${this::class.simpleName}" }

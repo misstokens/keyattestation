@@ -120,15 +120,6 @@ open class Verifier(
       return VerificationResult.ChallengeMismatch
     }
 
-    if (
-      keyDescription.teeEnforced.origin == null ||
-        keyDescription.teeEnforced.origin != Origin.GENERATED
-    ) {
-      return VerificationResult.ExtensionConstraintViolation(
-        "origin != GENERATED: ${keyDescription.teeEnforced.origin}"
-      )
-    }
-
     val securityLevel =
       if (keyDescription.attestationSecurityLevel == keyDescription.keymasterSecurityLevel) {
         keyDescription.attestationSecurityLevel
