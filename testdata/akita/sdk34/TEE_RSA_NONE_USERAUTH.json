@@ -26,7 +26,7 @@
     "userAuthType": "1",
     "authTimeout": "2147483647",
     "trustedUserPresenceRequired": true,
-    "origin": "0",
+    "origin": "GENERATED",
     "rootOfTrust": {
       "verifiedBootKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
       "deviceLocked": false,

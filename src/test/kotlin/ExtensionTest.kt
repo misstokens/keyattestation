@@ -95,7 +95,7 @@ class ExtensionTest {
         authTimeout = 9.toBigInteger(),
         trustedUserPresenceRequired = true,
         creationDateTime = 10.toBigInteger(),
-        origin = 1.toBigInteger(),
+        origin = Origin.GENERATED,
         rollbackResistant = true,
         rootOfTrust =
           RootOfTrust(

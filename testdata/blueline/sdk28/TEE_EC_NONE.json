@@ -23,7 +23,7 @@
     "algorithms": "3",
     "ecCurve": "1",
     "noAuthRequired": true,
-    "origin": "0",
+    "origin": "GENERATED",
     "rootOfTrust": {
       "verifiedBootKey": "",
       "deviceLocked": false,
