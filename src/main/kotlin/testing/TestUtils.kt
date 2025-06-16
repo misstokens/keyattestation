@@ -17,6 +17,7 @@
 package com.android.keyattestation.verifier.testing
 
 import com.android.keyattestation.verifier.KeyDescription
+import com.android.keyattestation.verifier.PatchLevel
 import com.android.keyattestation.verifier.asX509Certificate
 import com.android.keyattestation.verifier.provider.KeyAttestationCertPath
 
@@ -89,7 +90,15 @@ object BigIntegerAdapter {
   @ToJson fun toJson(value: BigInteger) = value.toString()
 }
 
-private val moshi = Moshi.Builder().add(Base64ByteStringAdapter).add(BigIntegerAdapter).build()
+// Assumes everything is well formatted.
+object PatchLevelAdapter {
+  @ToJson fun toJson(patchLevel: PatchLevel) = patchLevel.toString()
+
+  @FromJson fun fromJson(patchLevel: String) = PatchLevel.from(patchLevel)
+}
+
+private val moshi =
+  Moshi.Builder().add(Base64ByteStringAdapter).add(BigIntegerAdapter).add(PatchLevelAdapter).build()
 private val keyDescriptionAdapter = moshi.adapter(KeyDescription::class.java)
 
 internal fun KeyDescription.toJson() = keyDescriptionAdapter.toJson(this)

@@ -38,6 +38,9 @@ import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 import java.security.cert.X509Certificate
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import kotlin.text.Charsets.UTF_8
 import org.bouncycastle.asn1.ASN1Boolean
 import org.bouncycastle.asn1.ASN1Encodable
@@ -291,7 +294,7 @@ data class AuthorizationList(
   val rollbackResistant: Boolean? = null,
   val rootOfTrust: RootOfTrust? = null,
   val osVersion: BigInteger? = null,
-  val osPatchLevel: BigInteger? = null,
+  val osPatchLevel: PatchLevel? = null,
   val attestationApplicationId: AttestationApplicationId? = null,
   val attestationIdBrand: String? = null,
   val attestationIdDevice: String? = null,
@@ -301,8 +304,8 @@ data class AuthorizationList(
   val attestationIdMeid: String? = null,
   val attestationIdManufacturer: String? = null,
   val attestationIdModel: String? = null,
-  val vendorPatchLevel: BigInteger? = null,
-  val bootPatchLevel: BigInteger? = null,
+  val vendorPatchLevel: PatchLevel? = null,
+  val bootPatchLevel: PatchLevel? = null,
   val attestationIdSecondImei: String? = null,
   val moduleHash: ByteString? = null,
 ) {
@@ -431,7 +434,7 @@ data class AuthorizationList(
         rollbackResistant = if (objects.containsKey(KeyMintTag.ROLLBACK_RESISTANT)) true else null,
         rootOfTrust = objects[KeyMintTag.ROOT_OF_TRUST]?.toRootOfTrust(),
         osVersion = objects[KeyMintTag.OS_VERSION]?.toInt(),
-        osPatchLevel = objects[KeyMintTag.OS_PATCH_LEVEL]?.toInt(),
+        osPatchLevel = objects[KeyMintTag.OS_PATCH_LEVEL]?.toPatchLevel(),
         attestationApplicationId =
           objects[KeyMintTag.ATTESTATION_APPLICATION_ID]?.toAttestationApplicationId(),
         attestationIdBrand = objects[KeyMintTag.ATTESTATION_ID_BRAND]?.toStr(),
@@ -442,11 +445,44 @@ data class AuthorizationList(
         attestationIdMeid = objects[KeyMintTag.ATTESTATION_ID_MEID]?.toStr(),
         attestationIdManufacturer = objects[KeyMintTag.ATTESTATION_ID_MANUFACTURER]?.toStr(),
         attestationIdModel = objects[KeyMintTag.ATTESTATION_ID_MODEL]?.toStr(),
-        vendorPatchLevel = objects[KeyMintTag.VENDOR_PATCH_LEVEL]?.toInt(),
-        bootPatchLevel = objects[KeyMintTag.BOOT_PATCH_LEVEL]?.toInt(),
+        vendorPatchLevel = objects[KeyMintTag.VENDOR_PATCH_LEVEL]?.toPatchLevel(),
+        bootPatchLevel = objects[KeyMintTag.BOOT_PATCH_LEVEL]?.toPatchLevel(),
         attestationIdSecondImei = objects[KeyMintTag.ATTESTATION_ID_SECOND_IMEI]?.toStr(),
         moduleHash = objects[KeyMintTag.MODULE_HASH]?.toByteString(),
       )
+    }
+  }
+}
+
+@Immutable
+data class PatchLevel(val yearMonth: YearMonth, val version: Int? = null) {
+  fun toAsn1(): ASN1Encodable = ASN1Integer(this.toString().toBigInteger())
+
+  override fun toString(): String {
+    val yearMonthString = DateTimeFormatter.ofPattern("yyyyMM").format(this.yearMonth)
+    if (this.version != null) return String.format("$yearMonthString%02d", this.version)
+    return yearMonthString
+  }
+
+  companion object {
+    fun from(patchLevel: ASN1Encodable): PatchLevel? {
+      check(patchLevel is ASN1Integer) { "Must be an ASN1Integer, was ${this::class.simpleName}" }
+      return from(patchLevel.value.toString())
+    }
+
+    @JvmStatic
+    fun from(patchLevel: String): PatchLevel? {
+      if (patchLevel.length != 6 && patchLevel.length != 8) {
+        return null
+      }
+      try {
+        val yearMonth =
+          DateTimeFormatter.ofPattern("yyyyMM").parse(patchLevel.substring(0, 6), YearMonth::from)
+        val version = if (patchLevel.length == 8) patchLevel.substring(6).toInt() else null
+        return PatchLevel(yearMonth, version)
+      } catch (e: DateTimeParseException) {
+        return null
+      }
     }
   }
 }
@@ -608,6 +644,8 @@ private fun ASN1Encodable.toInt(): BigInteger {
   check(this is ASN1Integer) { "Must be an ASN1Integer, was ${this::class.simpleName}" }
   return this.value
 }
+
+private fun ASN1Encodable.toPatchLevel(): PatchLevel? = PatchLevel.from(this)
 
 private fun ASN1Encodable.toRootOfTrust(): RootOfTrust {
   check(this is ASN1Sequence) { "Object must be an ASN1Sequence, was ${this::class.simpleName}" }

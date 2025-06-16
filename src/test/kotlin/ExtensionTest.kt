@@ -24,6 +24,8 @@ import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.ByteString
 import com.google.testing.junit.testparameterinjector.TestParameter
 import com.google.testing.junit.testparameterinjector.TestParameterInjector
+import com.google.testing.junit.testparameterinjector.TestParameters
+import java.time.YearMonth
 import java.util.Base64
 import kotlin.io.path.Path
 import kotlin.io.path.inputStream
@@ -77,6 +79,14 @@ class ExtensionTest {
   }
 
   @Test
+  @TestParameters("{patchLevel: '202400'}")
+  @TestParameters("{patchLevel: '00000000'}")
+  @TestParameters("{patchLevel: '2000231'}")
+  fun parseFrom_invalidPatchLevel_returnsNull(patchLevel: String) {
+    assertThat(PatchLevel.from(patchLevel)).isNull()
+  }
+
+  @Test
   fun keyDescription_encodeToAsn1_expectedResult() {
     val authorizationList =
       AuthorizationList(
@@ -105,7 +115,7 @@ class ExtensionTest {
             verifiedBootHash = ByteString.copyFromUtf8("verifiedBootHash"),
           ),
         osVersion = 11.toBigInteger(),
-        osPatchLevel = 5.toBigInteger(),
+        osPatchLevel = PatchLevel(yearMonth = YearMonth.of(2024, 4)),
         attestationApplicationId =
           AttestationApplicationId(
             packages = setOf(AttestationPackageInfo(name = "name", version = 1.toBigInteger())),
@@ -119,8 +129,8 @@ class ExtensionTest {
         attestationIdMeid = "meid",
         attestationIdManufacturer = "manufacturer",
         attestationIdModel = "model",
-        vendorPatchLevel = 6.toBigInteger(),
-        bootPatchLevel = 7.toBigInteger(),
+        vendorPatchLevel = PatchLevel(YearMonth.of(2024, 4), 5),
+        bootPatchLevel = PatchLevel(YearMonth.of(2024, 4), 5),
         attestationIdSecondImei = "secondImei",
       )
     val keyDescription =
