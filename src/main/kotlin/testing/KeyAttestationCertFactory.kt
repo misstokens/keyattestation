@@ -18,7 +18,10 @@ package com.android.keyattestation.verifier.testing
 
 import com.android.keyattestation.verifier.AuthorizationList
 import com.android.keyattestation.verifier.KeyDescription
+import com.android.keyattestation.verifier.Origin
+import com.android.keyattestation.verifier.RootOfTrust
 import com.android.keyattestation.verifier.SecurityLevel
+import com.android.keyattestation.verifier.VerifiedBootState
 import com.google.protobuf.ByteString
 import java.math.BigInteger
 import java.security.KeyPair
@@ -127,7 +130,17 @@ internal class KeyAttestationCertFactory(val fakeCalendar: FakeCalendar = FakeCa
         attestationChallenge = ByteString.copyFromUtf8("A random 40-byte challenge for no reason"),
         uniqueId = ByteString.empty(),
         softwareEnforced = AuthorizationList(),
-        teeEnforced = AuthorizationList(),
+        teeEnforced =
+          AuthorizationList(
+            rootOfTrust =
+              RootOfTrust(
+                ByteString.copyFromUtf8("bootKey"),
+                false,
+                VerifiedBootState.VERIFIED,
+                ByteString.copyFromUtf8("bootHash"),
+              ),
+            origin = Origin.GENERATED,
+          ),
       )
       .asExtension()
 

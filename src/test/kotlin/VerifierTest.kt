@@ -81,6 +81,4 @@ class VerifierTest {
       verifier.verify(CertLists.wrongTrustAnchor, "challenge".toByteArray())
     )
   }
-
-  // TODO(b/416573024): Add tests for other failure cases.
 }

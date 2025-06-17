@@ -18,7 +18,7 @@
     "algorithms": "1",
     "rsaPublicExponent": "65537",
     "noAuthRequired": true,
-    "origin": "0",
+    "origin": "GENERATED",
     "rootOfTrust": {
       "verifiedBootKey": "",
       "deviceLocked": false,
