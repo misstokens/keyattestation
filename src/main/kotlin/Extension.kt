@@ -114,17 +114,17 @@ data class DeviceIdentity(
     @JvmStatic
     fun parseFrom(description: KeyDescription) =
       DeviceIdentity(
-        description.hardwareEnforced.attestationIdBrand,
-        description.hardwareEnforced.attestationIdDevice,
-        description.hardwareEnforced.attestationIdProduct,
-        description.hardwareEnforced.attestationIdSerial,
+        description.teeEnforced.attestationIdBrand,
+        description.teeEnforced.attestationIdDevice,
+        description.teeEnforced.attestationIdProduct,
+        description.teeEnforced.attestationIdSerial,
         setOfNotNull(
-          description.hardwareEnforced.attestationIdImei,
-          description.hardwareEnforced.attestationIdSecondImei,
+          description.teeEnforced.attestationIdImei,
+          description.teeEnforced.attestationIdSecondImei,
         ),
-        description.hardwareEnforced.attestationIdMeid,
-        description.hardwareEnforced.attestationIdManufacturer,
-        description.hardwareEnforced.attestationIdModel,
+        description.teeEnforced.attestationIdMeid,
+        description.teeEnforced.attestationIdManufacturer,
+        description.teeEnforced.attestationIdModel,
       )
   }
 }
@@ -139,7 +139,8 @@ data class KeyDescription(
   val attestationChallenge: ByteString,
   val uniqueId: ByteString,
   val softwareEnforced: AuthorizationList,
-  val hardwareEnforced: AuthorizationList,
+  // TODO: Rename to hardwareEnforced b/c could be TEE or StrongBox.
+  val teeEnforced: AuthorizationList,
 ) {
   fun asExtension(): Extension {
     return Extension(OID, /* critical= */ false, encodeToAsn1())
@@ -154,7 +155,7 @@ data class KeyDescription(
         add(attestationChallenge.toAsn1())
         add(uniqueId.toAsn1())
         add(softwareEnforced.toAsn1())
-        add(hardwareEnforced.toAsn1())
+        add(teeEnforced.toAsn1())
       }
       .let { DERSequence(it.toTypedArray()).encoded }
 
@@ -177,7 +178,7 @@ data class KeyDescription(
         from(ASN1Sequence.getInstance(bytes))
       } catch (e: NullPointerException) {
         // Workaround for a NPE in BouncyCastle.
-        // https://github.com/bcgit/bc-java/blob/228211ecb973fe87fdd0fc4ab16ba0446ec1a29c/core/src/main/java/org/bouncycastle/asn1/ASN1UniversalType.java#L24
+        // http://google3/third_party/java_src/bouncycastle/core/src/main/java/org/bouncycastle/asn1/ASN1UniversalType.java;l=24;rcl=484684674
         throw IllegalArgumentException(e)
       }
 
@@ -191,7 +192,7 @@ data class KeyDescription(
         attestationChallenge = seq.getObjectAt(4).toByteString(),
         uniqueId = seq.getObjectAt(5).toByteString(),
         softwareEnforced = seq.getObjectAt(6).toAuthorizationList(),
-        hardwareEnforced = seq.getObjectAt(7).toAuthorizationList(),
+        teeEnforced = seq.getObjectAt(7).toAuthorizationList(),
       )
     }
   }
@@ -203,9 +204,13 @@ data class KeyDescription(
  * @see https://source.android.com/docs/security/features/keystore/attestation#securitylevel-values
  */
 enum class SecurityLevel(val value: Int) {
+  // LINT.IfChange(security_level)
   SOFTWARE(0),
   TRUSTED_ENVIRONMENT(1),
   STRONG_BOX(2);
+
+  // LINT.ThenChange(//depot/google3/identity/cryptauth/apparat/apparat.proto:key_type,
+  // //depot/google3/identity/cryptauth/apparat/storage/apparat_storage_api.proto:keymaster_security_level)
 
   internal fun toAsn1() = ASN1Enumerated(value)
 }

@@ -130,7 +130,7 @@ internal class KeyAttestationCertFactory(val fakeCalendar: FakeCalendar = FakeCa
         attestationChallenge = ByteString.copyFromUtf8("A random 40-byte challenge for no reason"),
         uniqueId = ByteString.empty(),
         softwareEnforced = AuthorizationList(),
-        hardwareEnforced =
+        teeEnforced =
           AuthorizationList(
             rootOfTrust =
               RootOfTrust(
